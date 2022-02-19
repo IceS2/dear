@@ -1,22 +1,20 @@
-pub mod note;
+pub(crate) mod note;
+pub(crate) mod task;
+use async_trait::async_trait;
 
-use crate::backend::sql::DBEncoder;
+#[cfg(feature = "sql")]
+use sqlx;
 
-use enum_dispatch::enum_dispatch;
-use note::Note;
-
-#[enum_dispatch(SQLEntity)]
-pub(crate) enum EntityType {
-    Note(Note),
+#[cfg(feature = "sql")]
+#[async_trait]
+pub(crate) trait SQLEntitySave: std::fmt::Debug {
+    async fn save(&self, pool: &sqlx::SqlitePool);
 }
 
-#[enum_dispatch]
-pub(crate) trait SQLEntity {
-    fn name(&self) -> &'static str;
-    fn with_encoder<'q>(&'q self, encoder: &mut impl DBEncoder<'q>);
+#[cfg(feature = "sql")]
+#[async_trait]
+pub(crate) trait SQLEntityLoad {
+    async fn list<Entity>(pool: &sqlx::SqlitePool)
+        where
+            Entity: for<'a> sqlx::FromRow<'a, sqlx::sqlite::SqliteRow> + Send + Unpin + std::fmt::Debug;
 }
-
-// #[enum_dispatch]
-// pub(crate) trait SQLEntity {
-//     fn with_encoder<'q>(&'q self, encoder: &mut impl DBEncoder<'q>);
-// }

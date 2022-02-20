@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chrono::prelude::*;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use serde_json;
 
@@ -22,6 +23,16 @@ pub(crate) struct Task {
 impl Task {
     pub(crate) fn builder() -> TaskBuilder {
         TaskBuilder::default()
+    }
+}
+
+impl EntityImpl for Task {
+    fn name() -> &'static str {
+        "tasks"
+    }
+
+    fn attributes() -> Vec<&'static str> {
+        vec!["id", "title", "description", "due_date", "created_at", "updated_at", "deleted_at", "tags"]
     }
 }
 
@@ -130,10 +141,101 @@ impl TaskBuilder {
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// NoteFilter
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+#[derive(Serialize, Deserialize)]
+pub(crate) struct TaskUpdatedFilter {
+    pub(crate) from: Option<DateTime<Utc>>,
+    pub(crate) to: Option<DateTime<Utc>>
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct TaskDueDateFilter {
+    pub(crate) from: Option<DateTime<Utc>>,
+    pub(crate) to: Option<DateTime<Utc>>
+}
+
+pub(crate) struct TaskFilter {
+    tags: Option<Vec<String>>,
+    updated: Option<TaskUpdatedFilter>,
+    due_date: Option<TaskDueDateFilter>
+}
+
+impl Default for TaskFilter {
+    fn default() -> Self {
+        Self {
+            tags: None,
+            updated: None,
+            due_date: None
+        }
+    }
+}
+
+impl TaskFilter {
+    fn update(mut self, attribute: &str, value: &str) -> Self {
+        match attribute {
+            "tags" => {
+                let tags: Vec<String> = value.split(",").map(|tag| tag.to_string()).collect();
+                self.tags = Some(tags);
+                self
+            }
+            "updated" => {
+                let updated: TaskUpdatedFilter = serde_json::from_str(value).unwrap();
+                self.updated = Some(updated);
+                self
+            }
+            "due_date" => {
+                let due_date: TaskDueDateFilter = serde_json::from_str(value).unwrap();
+                self.due_date = Some(due_date);
+                self
+            }
+            _ => panic!()
+        }
+    }
+}
+
+impl SQLFilter for TaskFilter {
+    fn conditions(&self) -> Vec<String> {
+        let mut conditions: Vec<String> = Vec::new();
+
+        if let Some(tags) = &self.tags {
+            let tags = tags.join(",");
+            let tags_condition = format!("tags IN ({tags})");
+            conditions.push(tags_condition);
+        }
+
+        if let Some(updated) = &self.updated {
+            if let Some(from) = updated.from {
+                let from_condition = format!("updated_at >= {from}");
+                conditions.push(from_condition);
+            }
+            if let Some(to) = updated.to {
+                let to_condition = format!("updated_at < {to}");
+                conditions.push(to_condition);
+            }
+        }
+
+        if let Some(due_date) = &self.due_date {
+            if let Some(from) = due_date.from {
+                let from_condition = format!("updated_at >= {from}");
+                conditions.push(from_condition);
+            }
+            if let Some(to) = due_date.to {
+                let to_condition = format!("updated_at < {to}");
+                conditions.push(to_condition);
+            }
+        }
+        conditions
+    }
+}
+
+// -----------------------------------------------------------------------------
 // SQLite Support
 // -----------------------------------------------------------------------------
 #[cfg(feature = "sql")]
 use sqlx;
+use super::{SQLFilter, EntityImpl};
 #[cfg(feature = "sql")]
 use super::{SQLEntitySave, SQLEntityLoad};
 
@@ -165,11 +267,21 @@ impl SQLEntitySave for Task {
 #[cfg(feature = "sql")]
 #[async_trait]
 impl SQLEntityLoad for Task {
-    async fn list<Entity>(pool: &sqlx::SqlitePool)
+    async fn list<Entity>(pool: &sqlx::SqlitePool, filter: Option<Box<dyn SQLFilter>>)
     where
-        Entity: for<'a> sqlx::FromRow<'a, sqlx::sqlite::SqliteRow> + Send + Unpin + std::fmt::Debug
+        Entity: for<'a> sqlx::FromRow<'a, sqlx::sqlite::SqliteRow> + Send + Unpin + std::fmt::Debug + EntityImpl
     {
-        let res = sqlx::query_as::<_, Entity>("SELECT * FROM tasks")
+        let attributes = Entity::attributes().join(", ");
+        let entity = Entity::name();
+
+        let mut filter_stmt = "".to_string();
+        if let Some(filter) = filter {
+            let conditions = filter.conditions().join(" AND ");
+            filter_stmt = format!("WHERE {conditions}");
+        }
+
+        let query = format!("SELECT {attributes} FROM {entity} {filter_stmt}");
+        let res = sqlx::query_as::<_, Entity>(&query)
             .fetch_all(pool)
             .await
             .unwrap();

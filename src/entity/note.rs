@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use chrono::prelude::*;
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 use serde_json;
 
 // -----------------------------------------------------------------------------
@@ -21,6 +22,16 @@ pub(crate) struct Note {
 impl Note {
     pub(crate) fn builder() -> NoteBuilder {
         NoteBuilder::default()
+    }
+}
+
+impl EntityImpl for Note {
+    fn name() -> &'static str {
+        "notes"
+    }
+
+    fn attributes() -> Vec<&'static str> {
+        vec!["id", "title", "description", "created_at", "updated_at", "deleted_at", "tags"]
     }
 }
 
@@ -121,10 +132,77 @@ impl NoteBuilder {
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
+// NoteFilter
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+#[derive(Serialize, Deserialize)]
+pub(crate) struct NoteUpdatedFilter {
+    pub(crate) from: Option<DateTime<Utc>>,
+    pub(crate) to: Option<DateTime<Utc>>
+}
+
+pub(crate) struct NoteFilter {
+    tags: Option<Vec<String>>,
+    updated: Option<NoteUpdatedFilter>
+}
+
+impl Default for NoteFilter {
+    fn default() -> Self {
+        Self {
+            tags: None,
+            updated: None
+        }
+    }
+}
+
+impl NoteFilter {
+    fn update(mut self, attribute: &str, value: &str) -> Self {
+        match attribute {
+            "tags" => {
+                let tags: Vec<String> = value.split(",").map(|tag| tag.to_string()).collect();
+                self.tags = Some(tags);
+                self
+            }
+            "updated" => {
+                let updated: NoteUpdatedFilter = serde_json::from_str(value).unwrap();
+                self.updated = Some(updated);
+                self
+            }
+            _ => panic!()
+        }
+    }
+}
+
+impl SQLFilter for NoteFilter {
+    fn conditions(&self) -> Vec<String> {
+        let mut conditions: Vec<String> = Vec::new();
+
+        if let Some(tags) = &self.tags {
+            let tags = tags.join(",");
+            let tags_condition = format!("tags IN ({tags})");
+            conditions.push(tags_condition);
+        }
+
+        if let Some(updated) = &self.updated {
+            if let Some(from) = updated.from {
+                let from_condition = format!("updated_at >= {from}");
+                conditions.push(from_condition);
+            }
+            if let Some(to) = updated.to {
+                let to_condition = format!("updated_at < {to}");
+                conditions.push(to_condition);
+            }
+        }
+        conditions
+    }
+}
+
+// -----------------------------------------------------------------------------
 // SQLite Support
 // -----------------------------------------------------------------------------
 #[cfg(feature = "sql")]
 use sqlx;
+use super::{SQLFilter, EntityImpl};
 #[cfg(feature = "sql")]
 use super::{SQLEntitySave, SQLEntityLoad};
 
@@ -155,11 +233,21 @@ impl SQLEntitySave for Note {
 #[cfg(feature = "sql")]
 #[async_trait]
 impl SQLEntityLoad for Note {
-    async fn list<Entity>(pool: &sqlx::SqlitePool)
+    async fn list<Entity>(pool: &sqlx::SqlitePool, filter: Option<Box<dyn SQLFilter>>)
     where
-        Entity: for<'a> sqlx::FromRow<'a, sqlx::sqlite::SqliteRow> + Send + Unpin + std::fmt::Debug
+        Entity: for<'a> sqlx::FromRow<'a, sqlx::sqlite::SqliteRow> + Send + Unpin + std::fmt::Debug + EntityImpl
     {
-        let res = sqlx::query_as::<_, Entity>("SELECT * FROM notes")
+        let attributes = Entity::attributes().join(", ");
+        let entity = Entity::name();
+
+        let mut filter_stmt = "".to_string();
+        if let Some(filter) = filter {
+            let conditions = filter.conditions().join(" AND ");
+            filter_stmt = format!("WHERE {conditions}");
+        }
+
+        let query = format!("SELECT {attributes} FROM {entity} {filter_stmt}");
+        let res = sqlx::query_as::<_, Entity>(&query)
             .fetch_all(pool)
             .await
             .unwrap();

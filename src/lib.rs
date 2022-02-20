@@ -1,5 +1,5 @@
 mod entity;
-use entity::{SQLEntitySave, note::Note, task::Task, SQLEntityLoad};
+use entity::{SQLEntitySave, note::Note, task::Task, SQLEntityLoad, SQLFilter};
 
 use sqlx::SqlitePool;
 use std::collections::HashMap;
@@ -39,10 +39,10 @@ pub(crate) fn build_entity(entity: Entity, args: BuilderArgs) -> Box<dyn SQLEnti
     }
 }
 
-pub(crate) async fn list_entity(entity: Entity, pool: &sqlx::SqlitePool) {
+pub(crate) async fn list_entity(entity: Entity, filter: Option<Box<dyn SQLFilter>>, pool: &sqlx::SqlitePool) {
     match entity {
-        Entity::Note => Note::list::<Note>(pool).await,
-        Entity::Task => Task::list::<Task>(pool).await
+        Entity::Note => Note::list::<Note>(pool, filter).await,
+        Entity::Task => Task::list::<Task>(pool, filter).await
     };
 }
 
@@ -104,7 +104,7 @@ pub async fn test() {
     println!("{note:?}");
     note.save(&pool).await;
 
-    list_entity(Entity::Note, &pool).await;
+    list_entity(Entity::Note, None, &pool).await;
     // note.list(&pool).await;
 
     let args = BuilderArgs::new()
@@ -120,7 +120,7 @@ pub async fn test() {
     //     .build();
 
     task.save(&pool).await;
-    list_entity(Entity::Task, &pool).await;
+    list_entity(Entity::Task, None, &pool).await;
     // task.list(&pool).await;
 }
 

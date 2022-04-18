@@ -14,5 +14,6 @@ pub enum Action {
         title: String,
         #[clap(long, short)]
         description: Option<String>
-    }
+    },
+    List
 }

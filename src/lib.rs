@@ -6,6 +6,7 @@ mod cli;
 
 pub use cli::{Cli, Action};
 pub use crate::core::create_note;
+pub use crate::core::list_notes;
 use crate::repository::Repository;
 
 pub fn test() {

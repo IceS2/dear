@@ -10,8 +10,10 @@ fn main() {
         &dear::create_request("Initial Test", Some("Desc")),
     );
 
-    let _initial_note2 =
-        dear::create_note::execute(&mut repo, &dear::create_request("Second Test", None));
+    let _initial_note2 = dear::create_note::execute(
+        &mut repo,
+        &dear::create_request("Second Test Override", None),
+    );
 
     match &cli.action {
         dear::Action::Save { title, description } => {
@@ -20,7 +22,7 @@ fn main() {
             println!("{res:?}");
         }
         dear::Action::List => {
-            let res = dear::list_notes::execute(&repo);
+            let res = dear::list_notes::execute(&mut repo);
             println!("{res:?}");
         }
     }

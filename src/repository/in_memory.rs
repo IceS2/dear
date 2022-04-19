@@ -20,7 +20,7 @@ impl Repository for InMemoryRepository {
         Ok(note)
     }
 
-    fn list(&self) -> &Vec<Note> {
+    fn list(&mut self) -> &Vec<Note> {
         &self.notes
     }
 }

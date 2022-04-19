@@ -29,8 +29,8 @@ pub fn test() {
     println!("{res:?}")
 }
 
-pub fn create_repo() -> repository::InMemoryRepository {
-    repository::InMemoryRepository::new()
+pub fn create_repo() -> repository::FileRepository {
+    repository::FileRepository::default()
 }
 
 pub fn create_request<'a>(

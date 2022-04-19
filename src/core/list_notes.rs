@@ -1,7 +1,7 @@
 use crate::entity::note::Note;
 use crate::repository::Repository;
 
-pub fn execute(repo: &dyn Repository) -> &Vec<Note> {
+pub fn execute(repo: &mut dyn Repository) -> &Vec<Note> {
     repo.list()
 }
 

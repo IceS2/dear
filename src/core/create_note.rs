@@ -4,7 +4,7 @@ use crate::repository::Repository;
 #[derive(Debug)]
 pub struct Request<'a> {
     pub title: &'a str,
-    pub description: Option<&'a str>
+    pub description: Option<&'a str>,
 }
 
 type Error = &'static str;
@@ -12,7 +12,7 @@ type Error = &'static str;
 pub fn execute(repo: &mut dyn Repository, req: &Request) -> Result<Note, Error> {
     match Note::try_from(req) {
         Ok(note) => repo.insert(note),
-        Err(msg) => Err(msg)
+        Err(msg) => Err(msg),
     }
 }
 
@@ -37,7 +37,7 @@ mod tests {
 
         let req = Request {
             title,
-            description: Some(description)
+            description: Some(description),
         };
 
         let res = execute(&mut repo, &req).unwrap();
@@ -55,14 +55,14 @@ mod tests {
 
         let req = Request {
             title,
-            description: Some(description)
+            description: Some(description),
         };
 
         let res = execute(&mut repo, &req);
 
         match res {
-            Err(_) => {},
-            _ => unreachable!()
+            Err(_) => {}
+            _ => unreachable!(),
         }
     }
 }

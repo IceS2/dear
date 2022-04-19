@@ -4,7 +4,7 @@ use crate::repository::Repository;
 type Error = &'static str;
 
 pub struct InMemoryRepository {
-    notes: Vec<Note>
+    notes: Vec<Note>,
 }
 
 impl InMemoryRepository {
@@ -22,5 +22,11 @@ impl Repository for InMemoryRepository {
 
     fn list(&self) -> &Vec<Note> {
         &self.notes
+    }
+}
+
+impl Default for InMemoryRepository {
+    fn default() -> Self {
+        InMemoryRepository::new()
     }
 }

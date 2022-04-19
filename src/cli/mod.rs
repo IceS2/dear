@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 #[clap(author, version, about, long_about = None)]
 pub struct Cli {
     #[clap(subcommand)]
-    pub action: Action
+    pub action: Action,
 }
 
 #[derive(Subcommand, Debug)]
@@ -13,7 +13,7 @@ pub enum Action {
         #[clap(long, short)]
         title: String,
         #[clap(long, short)]
-        description: Option<String>
+        description: Option<String>,
     },
-    List
+    List,
 }

@@ -14,8 +14,8 @@ mod tests {
     fn it_should_list_all_created_notes() {
         let mut repo = InMemoryRepository::new();
 
-        let first_note = Note::new("My Title", Some("Lorem Ipsum.")).unwrap();
-        let second_note = Note::new("Another Title", None).unwrap();
+        let first_note = Note::new("My Title", Some("Lorem Ipsum."), None).unwrap();
+        let second_note = Note::new("Another Title", None, None).unwrap();
 
         let expected: Vec<Note> = [first_note.clone(), second_note.clone()].into();
 

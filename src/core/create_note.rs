@@ -5,6 +5,7 @@ use crate::repository::Repository;
 pub struct Request<'a> {
     pub title: &'a str,
     pub description: Option<&'a str>,
+    pub tags: Option<&'a Vec<String>>,
 }
 
 type Error = &'static str;
@@ -19,7 +20,7 @@ pub fn execute(repo: &mut dyn Repository, req: &Request) -> Result<Note, Error> 
 impl TryFrom<&Request<'_>> for Note {
     type Error = &'static str;
     fn try_from(req: &Request) -> Result<Self, Self::Error> {
-        Note::new(req.title, req.description)
+        Note::new(req.title, req.description, req.tags)
     }
 }
 
@@ -38,6 +39,7 @@ mod tests {
         let req = Request {
             title,
             description: Some(description),
+            tags: None,
         };
 
         let res = execute(&mut repo, &req).unwrap();
@@ -56,6 +58,7 @@ mod tests {
         let req = Request {
             title,
             description: Some(description),
+            tags: None,
         };
 
         let res = execute(&mut repo, &req);

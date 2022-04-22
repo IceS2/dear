@@ -1,7 +1,5 @@
-use lazy_static::lazy_static;
-use regex::Regex;
-use std::fs;
-use std::io::{Read, Write};
+use std::io::{BufRead, Write};
+use std::{fs, io};
 
 use crate::entity::note::Note;
 use crate::repository::Repository;
@@ -34,34 +32,46 @@ impl Repository for FileRepository {
             Some(d) => d,
             None => "",
         };
+
+        let t = match &note.tags {
+            Some(tags) => tags.join(","),
+            None => String::from("\n"),
+        };
         write!(
             file,
-            "Title:\n{title}\n\nDescription:\n{description}",
+            "{title}\n{description}\n{tags}",
             title = note.title,
-            description = desc
+            description = desc,
+            tags = t
         )
         .unwrap();
         Ok(note)
     }
 
     fn list(&mut self) -> &Vec<Note> {
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"Title:\n(.*)\n\nDescription:\n(.*)").unwrap();
-        }
         let paths = fs::read_dir(&self.root_dir).unwrap();
         for path in paths {
             let file_path = path.unwrap().path();
-            let mut file = fs::File::open(file_path).unwrap();
-            let mut contents = String::new();
-            file.read_to_string(&mut contents).unwrap();
-            for cap in RE.captures_iter(&contents) {
-                println!("{}", &cap[2]);
-                let description = match &cap[2] {
-                    "" => None,
-                    _ => Some(&cap[2]),
-                };
-                self.notes.push(Note::new(&cap[1], description).unwrap());
-            }
+            let file = fs::File::open(file_path).unwrap();
+            let mut lines = io::BufReader::new(file).lines();
+            let title = lines.next().unwrap().unwrap();
+            let mut body: Vec<String> = lines.map(|line| line.unwrap()).collect();
+            let last = body.pop().unwrap();
+            let tags: Vec<String> = last
+                .split(',')
+                .map(|tag| tag.to_string())
+                .filter(|tag| !tag.is_empty())
+                .collect();
+            let description = body.join("\n");
+
+            let desc: Option<&str> = match &*description {
+                "" => None,
+                _ => Some(&description),
+            };
+
+            let t = if tags.is_empty() { None } else { Some(&tags) };
+
+            self.notes.push(Note::new(&title, desc, t).unwrap())
         }
         &self.notes
     }

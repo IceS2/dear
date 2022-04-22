@@ -17,6 +17,7 @@ pub fn test() {
     let req = core::create_note::Request {
         title: "My Title",
         description: Some("Lorem Ipsum."),
+        tags: None,
     };
 
     let res = core::create_note::execute(&mut repo, &req);
@@ -36,6 +37,11 @@ pub fn create_repo() -> repository::FileRepository {
 pub fn create_request<'a>(
     title: &'a str,
     description: Option<&'a str>,
+    tags: Option<&'a Vec<String>>,
 ) -> core::create_note::Request<'a> {
-    core::create_note::Request { title, description }
+    core::create_note::Request {
+        title,
+        description,
+        tags,
+    }
 }

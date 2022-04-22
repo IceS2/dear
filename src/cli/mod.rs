@@ -10,10 +10,14 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Action {
     Save {
-        #[clap(long, short)]
+        #[clap(long)]
         title: String,
+
         #[clap(long, short)]
         description: Option<String>,
+
+        #[clap(long, short, multiple_occurrences(true))]
+        tags: Option<Vec<String>>,
     },
     List,
 }

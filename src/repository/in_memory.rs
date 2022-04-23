@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
+use super::{NoteIterator, Repository};
 use crate::entity::note::Note;
-use super::{Repository, NoteIterator};
 
 pub struct InMemoryRepository {
     notes: Vec<Note>,

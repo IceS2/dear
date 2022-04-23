@@ -1,9 +1,9 @@
 use std::io::{BufRead, Write};
-use std::{env, fs, io};
 use std::path::{Path, PathBuf};
+use std::{env, fs, io};
 
+use super::{NoteIterator, Repository};
 use crate::entity::note::Note;
-use super::{Repository, NoteIterator};
 
 pub struct FileRepository {
     root_dir: PathBuf,
@@ -36,7 +36,7 @@ impl Repository for FileRepository {
         let description = note.description.as_deref().unwrap_or("");
         let tags = match &note.tags {
             Some(tags) => tags.join(","),
-            None => "".to_owned()
+            None => "".to_owned(),
         };
 
         write!(
@@ -64,7 +64,8 @@ impl Repository for FileRepository {
                     .filter(|tag| !tag.is_empty())
                     .map(|tag| tag.to_owned())
                     .collect();
-                let description = Some(body.join("\n").trim_matches('\n').to_owned()).filter(|desc| !desc.is_empty());
+                let description = Some(body.join("\n").trim_matches('\n').to_owned())
+                    .filter(|desc| !desc.is_empty());
                 (tags, description)
             };
 

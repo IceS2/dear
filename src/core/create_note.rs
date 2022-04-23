@@ -16,7 +16,7 @@ pub enum CreateNoteError<E> {
 
 pub fn execute<R>(repo: &mut R, req: &Request<'_>) -> Result<Note, CreateNoteError<R::Error>>
 where
-    R: Repository
+    R: Repository,
 {
     let note = req.try_into().map_err(CreateNoteError::BadRequest)?;
     repo.insert(note).map_err(CreateNoteError::Repository)

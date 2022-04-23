@@ -7,7 +7,7 @@ pub struct Note {
 
 #[derive(Debug)]
 pub enum NoteError {
-    EmptyTitle
+    EmptyTitle,
 }
 
 impl Note {

@@ -16,11 +16,13 @@ mod tests {
 
         let first_note = Note::new("My Title", Some("Lorem Ipsum."), None).unwrap();
         let second_note = Note::new("Another Title", None, None).unwrap();
+        let third_note = Note::new("Note with Tags", None, Some(&vec!["tag1".to_owned()])).unwrap();
 
-        let expected = [first_note.clone(), second_note.clone()];
+        let expected = [first_note.clone(), second_note.clone(), third_note.clone()];
 
         repo.insert(first_note).unwrap();
         repo.insert(second_note).unwrap();
+        repo.insert(third_note).unwrap();
 
         let res = repo.list().unwrap().collect::<Vec<_>>();
 

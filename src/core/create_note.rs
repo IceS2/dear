@@ -55,7 +55,7 @@ mod tests {
     }
 
     #[test]
-    fn it_should_raise_an_error_when_title_is_empty() {
+    fn it_should_raise_a_bad_request_error_when_title_is_empty() {
         let mut repo = InMemoryRepository::new();
 
         let title = "";
@@ -70,7 +70,7 @@ mod tests {
         let res = execute(&mut repo, &req);
 
         match res {
-            Err(_) => {}
+            Err(CreateNoteError::BadRequest(_)) => {}
             _ => unreachable!(),
         }
     }

@@ -13,6 +13,7 @@ pub struct FileRepository {
 
 impl FileRepository {
     pub fn new(root_dir: &str) -> Self {
+        fs::create_dir_all(root_dir).unwrap();
         Self {
             root_dir: String::from(root_dir),
             notes: vec![],

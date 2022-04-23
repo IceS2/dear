@@ -5,21 +5,24 @@ pub struct Note {
     pub tags: Option<Vec<String>>,
 }
 
-type Error = &'static str;
+#[derive(Debug)]
+pub enum NoteError {
+    EmptyTitle
+}
 
 impl Note {
     pub fn new(
         title: &str,
         description: Option<&str>,
         tags: Option<&Vec<String>>,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, NoteError> {
         if title.is_empty() {
-            return Err("Note's title can't be empty");
+            return Err(NoteError::EmptyTitle);
         }
         Ok(Self {
-            title: title.into(),
-            description: description.map(|desc| desc.into()),
-            tags: tags.map(|tag_list| tag_list.iter().map(|tag| tag.to_string()).collect()),
+            title: title.to_owned(),
+            description: description.map(|desc| desc.to_owned()),
+            tags: tags.map(|tag_list| tag_list.iter().map(|tag| tag.to_owned()).collect()),
         })
     }
 }

@@ -1,7 +1,7 @@
-use crate::entity::note::Note;
-use crate::repository::Repository;
+use std::convert::Infallible;
 
-type Error = &'static str;
+use crate::entity::note::Note;
+use super::{Repository, NoteIterator};
 
 pub struct InMemoryRepository {
     notes: Vec<Note>,
@@ -9,19 +9,20 @@ pub struct InMemoryRepository {
 
 impl InMemoryRepository {
     pub fn new() -> Self {
-        let notes: Vec<Note> = vec![];
-        Self { notes }
+        Self { notes: vec![] }
     }
 }
 
 impl Repository for InMemoryRepository {
-    fn insert(&mut self, note: Note) -> Result<Note, Error> {
+    type Error = Infallible;
+
+    fn insert(&mut self, note: Note) -> Result<Note, Infallible> {
         self.notes.push(note.clone());
         Ok(note)
     }
 
-    fn list(&mut self) -> &Vec<Note> {
-        &self.notes
+    fn list(&self) -> Result<NoteIterator<'_>, Self::Error> {
+        Ok(Box::new(self.notes.iter().cloned()))
     }
 }
 

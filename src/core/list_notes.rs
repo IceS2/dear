@@ -1,7 +1,7 @@
 use crate::entity::note::Note;
 use crate::repository::Repository;
 
-pub fn execute(repo: &mut dyn Repository) -> &Vec<Note> {
+pub fn execute<R: Repository>(repo: &R) -> Result<impl Iterator<Item = Note> + '_, R::Error> {
     repo.list()
 }
 
@@ -17,12 +17,12 @@ mod tests {
         let first_note = Note::new("My Title", Some("Lorem Ipsum."), None).unwrap();
         let second_note = Note::new("Another Title", None, None).unwrap();
 
-        let expected: Vec<Note> = [first_note.clone(), second_note.clone()].into();
+        let expected = [first_note.clone(), second_note.clone()];
 
         repo.insert(first_note).unwrap();
         repo.insert(second_note).unwrap();
 
-        let res = repo.list();
+        let res = repo.list().unwrap().collect::<Vec<_>>();
 
         assert_eq!(expected.len(), res.len());
         assert!(expected.iter().all(|note| res.contains(note)));

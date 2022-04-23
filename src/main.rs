@@ -17,7 +17,7 @@ fn main() {
             println!("{res:?}");
         }
         dear::Action::List => {
-            let res = dear::list_notes::execute(&mut repo);
+            let res = dear::list_notes::execute(&repo).map(Vec::from_iter);
             println!("{res:?}");
         }
     }

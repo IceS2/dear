@@ -1,85 +1,85 @@
 use std::io::{BufRead, Write};
-use std::{fs, io};
+use std::{env, fs, io};
+use std::path::{Path, PathBuf};
 
 use crate::entity::note::Note;
-use crate::repository::Repository;
-
-type Error = &'static str;
+use super::{Repository, NoteIterator};
 
 pub struct FileRepository {
-    root_dir: String,
-    notes: Vec<Note>,
+    root_dir: PathBuf,
 }
 
 impl FileRepository {
-    pub fn new(root_dir: &str) -> Self {
-        fs::create_dir_all(root_dir).unwrap();
+    pub fn new(root_dir: impl AsRef<Path>) -> Self {
+        let path: &Path = root_dir.as_ref();
+
+        fs::create_dir_all(path).unwrap();
+
         Self {
-            root_dir: String::from(root_dir),
-            notes: vec![],
+            root_dir: path.to_owned(),
         }
     }
 }
 
 impl Repository for FileRepository {
-    fn insert(&mut self, note: Note) -> Result<Note, Error> {
-        let mut file = fs::File::create(format!(
-            "{path}/{title}",
-            path = self.root_dir,
-            title = note.title
-        ))
-        .unwrap();
-        let desc = match &note.description {
-            Some(d) => d,
-            None => "",
+    type Error = std::io::Error;
+
+    fn insert(&mut self, note: Note) -> Result<Note, Self::Error> {
+        let file_path = {
+            let mut path = self.root_dir.clone();
+            path.push(&note.title);
+            path
         };
 
-        let t = match &note.tags {
+        let mut file = fs::File::create(file_path)?;
+
+        let description = note.description.as_deref().unwrap_or("");
+        let tags = match &note.tags {
             Some(tags) => tags.join(","),
-            None => String::from("\n"),
+            None => "".to_owned()
         };
+
         write!(
             file,
-            "{title}\n{description}\n{tags}",
-            title = note.title,
-            description = desc,
-            tags = t
-        )
-        .unwrap();
+            "{title}\n\n{description}\n\n{tags}",
+            title = note.title
+        )?;
+
         Ok(note)
     }
 
-    fn list(&mut self) -> &Vec<Note> {
-        let paths = fs::read_dir(&self.root_dir).unwrap();
-        for path in paths {
-            let file_path = path.unwrap().path();
-            let file = fs::File::open(file_path).unwrap();
-            let mut lines = io::BufReader::new(file).lines();
-            let title = lines.next().unwrap().unwrap();
-            let mut body: Vec<String> = lines.map(|line| line.unwrap()).collect();
-            let last = body.pop().unwrap();
-            let tags: Vec<String> = last
-                .split(',')
-                .map(|tag| tag.to_string())
-                .filter(|tag| !tag.is_empty())
-                .collect();
-            let description = body.join("\n");
+    fn list(&self) -> Result<NoteIterator<'_>, Self::Error> {
+        let mut notes = vec![];
 
-            let desc: Option<&str> = match &*description {
-                "" => None,
-                _ => Some(&description),
+        for entry in fs::read_dir(&self.root_dir)? {
+            let file = fs::File::open(entry?.path())?;
+            let mut lines = io::BufReader::new(file).lines();
+
+            let title = lines.next().unwrap()?;
+            let (tags, description) = {
+                let mut body: Vec<String> = lines.filter_map(|line| line.ok()).collect();
+                let last_line = body.pop().unwrap();
+                let tags: Vec<String> = last_line
+                    .split(',')
+                    .filter(|tag| !tag.is_empty())
+                    .map(|tag| tag.to_owned())
+                    .collect();
+                let description = Some(body.join("\n").trim_matches('\n').to_owned()).filter(|desc| !desc.is_empty());
+                (tags, description)
             };
 
-            let t = if tags.is_empty() { None } else { Some(&tags) };
+            let tags = (!tags.is_empty()).then(|| &tags);
 
-            self.notes.push(Note::new(&title, desc, t).unwrap())
+            notes.push(Note::new(&title, description.as_deref(), tags).unwrap());
         }
-        &self.notes
+
+        Ok(Box::new(notes.into_iter()))
     }
 }
 
 impl Default for FileRepository {
     fn default() -> Self {
-        FileRepository::new("./notes/")
+        let home = env::var("HOME").unwrap();
+        FileRepository::new(&format!("{home}/.dear/notes/"))
     }
 }

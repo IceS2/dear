@@ -1,4 +1,4 @@
-use crate::entity::note::Note;
+use crate::entity::note::{Note, NoteError};
 use crate::repository::Repository;
 
 #[derive(Debug)]
@@ -8,18 +8,24 @@ pub struct Request<'a> {
     pub tags: Option<&'a Vec<String>>,
 }
 
-type Error = &'static str;
+#[derive(Debug)]
+pub enum CreateNoteError<E> {
+    BadRequest(NoteError),
+    Repository(E),
+}
 
-pub fn execute(repo: &mut dyn Repository, req: &Request) -> Result<Note, Error> {
-    match Note::try_from(req) {
-        Ok(note) => repo.insert(note),
-        Err(msg) => Err(msg),
-    }
+pub fn execute<R>(repo: &mut R, req: &Request<'_>) -> Result<Note, CreateNoteError<R::Error>>
+where
+    R: Repository
+{
+    let note = req.try_into().map_err(CreateNoteError::BadRequest)?;
+    repo.insert(note).map_err(CreateNoteError::Repository)
 }
 
 impl TryFrom<&Request<'_>> for Note {
-    type Error = &'static str;
-    fn try_from(req: &Request) -> Result<Self, Self::Error> {
+    type Error = NoteError;
+
+    fn try_from(req: &Request<'_>) -> Result<Self, Self::Error> {
         Note::new(req.title, req.description, req.tags)
     }
 }

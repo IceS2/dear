@@ -26,8 +26,7 @@ pub fn test() {
     println!("{res:?}");
 
     let _ = core::create_note::execute(&mut repo, &req);
-    let res = repo.list();
-    println!("{res:?}")
+    let _res = repo.list();
 }
 
 pub fn create_repo() -> repository::FileRepository {

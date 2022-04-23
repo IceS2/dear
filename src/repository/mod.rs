@@ -6,9 +6,11 @@ pub use in_memory::InMemoryRepository;
 
 use crate::entity::note::Note;
 
-type Error = &'static str;
+pub type NoteIterator<'repo> = Box<dyn Iterator<Item = Note> + 'repo>;
 
 pub trait Repository {
-    fn insert(&mut self, note: Note) -> Result<Note, Error>;
-    fn list(&mut self) -> &Vec<Note>;
+    type Error: std::error::Error;
+
+    fn insert(&mut self, note: Note) -> Result<Note, Self::Error>;
+    fn list(&self) -> Result<NoteIterator<'_>, Self::Error>;
 }

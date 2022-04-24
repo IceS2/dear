@@ -6,8 +6,6 @@ It was born mainly from my desire for learning Rust... I realised that working o
 
 ## Installation
 
-**Obs.: Still there is no published binary**
-
 Using cargo
 ```bash
 cargo install dear

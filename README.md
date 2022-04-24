@@ -16,6 +16,8 @@ cargo install dear
 Dear is currently able to **save** and **list** Notes. They are stored as plain text in a configurable location.
 A Note has a title and it might have a description and any number of tags.
 
+[![Demo](https://asciinema.org/a/489767.svg)](https://asciinema.org/a/489767)
+
 ### Configuration
 
 TODO
@@ -24,26 +26,39 @@ TODO
 
 ```bash
 # Minimal Note
-dear save --title "My First Note"
+> dear save --title "My First Note"
+Note { title: "My First Note", description: None, tags: None }
 
 # Note with description
-dear save --title "My Second Note" -d "I'm just testing out this, dear"
+> dear save --title "A Note with Description" -d "Description o/"
+Note { title: "A Note with Description", description: Some("Description o/"), tags: None }
 
 # Notes might have several tags
-dear save --title "Rust is amazing" -t rust
-dear save --title "My dog's schedule" -d "Walk at 9 and 18 | Eat at 12 and 20" -t dog -t home
+> dear save --title "A Note with a Tag" -t tag
+Note { title: "A Note with a Tag", description: None, tags: Some(["tag"]) }
+
+> dear save --title "A Note with multiple tags" -t tag1 -t tag2
+Note { title: "A Note with multiple tags", description: None, tags: Some(["tag1", "tag2"]) }
 ```
 
 ### List Notes
 
 ```bash
-dear list
+> dear list
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                              My dog's schedule                               │
+│                           A Note with Description                            │
 │                                                                              │
-│ Walk at 9 and 18 | Eat at 12 and 20                                          │
+│ Description o/                                                               │
 │                                                                              │
-│                                                                   [dog][home]│
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              A Note with a Tag                               │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                         [tag]│
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -55,19 +70,11 @@ dear list
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                               Rust is amazing                                │
+│                          A Note with multiple tags                           │
 │                                                                              │
 │                                                                              │
 │                                                                              │
-│                                                                        [rust]│
-└──────────────────────────────────────────────────────────────────────────────┘
-
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                My Second Note                                │
-│                                                                              │
-│ I'm just testing out this, dear                                              │
-│                                                                              │
-│                                                                              │
+│                                                                  [tag1][tag2]│
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 

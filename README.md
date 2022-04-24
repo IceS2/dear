@@ -40,7 +40,37 @@ dear save --title "My dog's schedule" -d "Walk at 9 and 18 | Eat at 12 and 20" -
 
 ```bash
 dear list
-[Note { title: "My dog's schedule", description: Some("Walk at 9 and 18 | Eat at 12 and 20"), tags: Some(["dog", "home"]) }, Note { title: "My First note", description: None, tags: None }, Note { title: "Rust is amazing", description: None, tags: Some(["rust"]) }, Note { title: "My Second Note", description: Some("I'm just testing out this, dear"), tags: None }]
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              My dog's schedule                               │
+│                                                                              │
+│ Walk at 9 and 18 | Eat at 12 and 20                                          │
+│                                                                              │
+│                                                                   [dog][home]│
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                My First Note                                 │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                               Rust is amazing                                │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                        [rust]│
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                My Second Note                                │
+│                                                                              │
+│ I'm just testing out this, dear                                              │
+│                                                                              │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Contribution Guidelines

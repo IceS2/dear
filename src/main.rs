@@ -11,14 +11,18 @@ fn main() {
             description,
             tags,
         } => {
-            println!("{tags:?}");
             let req = dear::create_request(title, description.as_deref(), tags.as_ref());
             let res = dear::create_note::execute(&mut repo, &req).unwrap();
             println!("{res:?}");
         }
         dear::Action::List => {
-            let res = dear::list_notes::execute(&repo).map(Vec::from_iter);
-            println!("{res:?}");
+            let res = dear::list_notes::execute(&repo)
+                .map(Vec::from_iter)
+                .unwrap();
+
+            for note in res {
+                println!("{note}");
+            }
         }
     }
     // dear::test();

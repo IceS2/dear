@@ -1,3 +1,7 @@
+use std::fmt;
+
+use owo_colors::OwoColorize;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Note {
     pub title: String,
@@ -24,6 +28,68 @@ impl Note {
             description: description.map(|desc| desc.to_owned()),
             tags: tags.map(|tag_list| tag_list.iter().map(|tag| tag.to_owned()).collect()),
         })
+    }
+}
+
+impl fmt::Display for Note {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let description = self.description.as_deref().unwrap_or("");
+        let tags = match self.tags.as_deref() {
+            Some(tags) => format!("[{}]", tags.join("][")),
+            None => "".to_owned(),
+        };
+
+        writeln!(
+            f,
+            "{}{:\u{2500}<78}{}",
+            "\u{250C}".purple().dimmed(),
+            "\u{2500}".purple().dimmed(),
+            "\u{2510}".purple().dimmed()
+        )?;
+        for title_line in textwrap::wrap(&self.title, 78) {
+            writeln!(
+                f,
+                "{}{:^78}{}",
+                "\u{2502}".purple().dimmed(),
+                title_line.bright_purple().bold(),
+                "\u{2502}".purple().dimmed()
+            )?;
+        }
+        writeln!(
+            f,
+            "{:<79}{}",
+            "\u{2502}".purple().dimmed(),
+            "\u{2502}".purple().dimmed()
+        )?;
+        for desc_line in textwrap::wrap(description, 77) {
+            writeln!(
+                f,
+                "{} {:<77}{}",
+                "\u{2502}".purple().dimmed(),
+                desc_line.yellow(),
+                "\u{2502}".purple().dimmed()
+            )?;
+        }
+        writeln!(
+            f,
+            "{:<79}{}",
+            "\u{2502}".purple().dimmed(),
+            "\u{2502}".purple().dimmed()
+        )?;
+        writeln!(
+            f,
+            "{}{:>78}{}",
+            "\u{2502}".purple().dimmed(),
+            tags.bright_cyan().bold(),
+            "\u{2502}".purple().dimmed()
+        )?;
+        writeln!(
+            f,
+            "{}{:\u{2500}<78}{}",
+            "\u{2514}".purple().dimmed(),
+            "\u{2500}".purple().dimmed(),
+            "\u{2518}".purple().dimmed()
+        )
     }
 }
 

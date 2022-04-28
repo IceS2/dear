@@ -1,10 +1,29 @@
 use clap::StructOpt;
+use dear::config::{BackendConfig, FileBackendConfig};
+use dear::repository;
+use dear::repository::Repository;
 
 fn main() {
     let cli = dear::Cli::parse();
 
-    let mut repo = dear::create_repo();
+    let config = dear::config::DearConfig::default();
+    println!("{config:?}");
 
+    println!("{:?}", cli.profile);
+    let profile = config.profiles.get(&cli.profile).unwrap();
+    println!("{profile:?}");
+
+    match &profile.backend {
+        BackendConfig::File(FileBackendConfig { path }) => {
+            run_with_repo(cli, repository::FileRepository::new(path));
+        }
+        BackendConfig::InMemory => {
+            run_with_repo(cli, repository::InMemoryRepository::default());
+        }
+    }
+}
+
+fn run_with_repo<R: Repository>(cli: dear::Cli, mut repo: R) {
     match &cli.action {
         dear::Action::Save {
             title,
@@ -16,6 +35,8 @@ fn main() {
             println!("{res:?}");
         }
         dear::Action::List => {
+            println!("List");
+            println!("{repo:?}");
             let res = dear::list_notes::execute(&repo)
                 .map(Vec::from_iter)
                 .unwrap();
@@ -25,5 +46,4 @@ fn main() {
             }
         }
     }
-    // dear::test();
 }

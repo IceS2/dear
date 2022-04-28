@@ -5,6 +5,9 @@ use clap::{Parser, Subcommand};
 pub struct Cli {
     #[clap(subcommand)]
     pub action: Action,
+
+    #[clap(long, default_value = "default", global = true)]
+    pub profile: String,
 }
 
 #[derive(Subcommand, Debug)]

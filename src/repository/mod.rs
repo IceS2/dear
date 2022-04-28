@@ -8,7 +8,7 @@ use crate::entity::note::Note;
 
 pub type NoteIterator<'repo> = Box<dyn Iterator<Item = Note> + 'repo>;
 
-pub trait Repository {
+pub trait Repository: std::fmt::Debug {
     type Error: std::error::Error;
 
     fn insert(&mut self, note: Note) -> Result<Note, Self::Error>;

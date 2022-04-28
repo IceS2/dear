@@ -3,6 +3,7 @@ use std::convert::Infallible;
 use super::{NoteIterator, Repository};
 use crate::entity::note::Note;
 
+#[derive(Debug)]
 pub struct InMemoryRepository {
     notes: Vec<Note>,
 }

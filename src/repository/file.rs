@@ -5,6 +5,7 @@ use std::{env, fs, io};
 use super::{NoteIterator, Repository};
 use crate::entity::note::Note;
 
+#[derive(Debug)]
 pub struct FileRepository {
     root_dir: PathBuf,
 }
